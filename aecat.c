@@ -111,6 +111,13 @@ static char *hex_codes[16] = {
 void output_html(void) {
    int x, y;
    struct html_output_state_t cur_state;
+   
+   /* Set cur_state defaults - to prevent -Wmaybe-uninitialized warnings */
+   cur_state.color = -1;
+   cur_state.bgcolor = -1;
+   cur_state.blink_tag_open = false;
+   cur_state.font_tag_open = false;
+
    DecodedCell dec;
 
    fputs("<html><body style=\"color:#ffffff;background-color:#000000;\">"
