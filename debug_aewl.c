@@ -7,6 +7,7 @@
 #include "aewl/field.h"
 #include "aewl/label.h"
 
+#include "filedlg.h"
 #include "keys.h"
 
 #include <ncurses.h>
