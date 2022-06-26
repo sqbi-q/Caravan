@@ -1,0 +1,9 @@
+config.log
+config.status
+Makefile
+
+*.o
+aecat
+aemakeflic
+aewan
+depends
