@@ -88,7 +88,7 @@ static bool read_parse_data_line(gzFile f, char **label, char **type,
    autod_begin;
    autod_register(line, free);
 
-   autod_assign( line, freadline_ex(f, gzgetc) );
+   autod_assign( line, freadline_ex(f, (void*)gzgetc) );
 
    /* look for ':' field separators and note their locations */
    field_start[0] = line;
@@ -192,7 +192,7 @@ static bool aeff_read_mark(AeFile *f, const char *mark_name, char pref) {
    autod_begin;
    autod_register(line, free);
    
-   autod_assign(line, freadline_ex(f->f, gzgetc));
+   autod_assign(line, freadline_ex(f->f, (void*)gzgetc));
 
    /* if EOF was reached before anything could be read, something is wrong */
    if (!line) {
