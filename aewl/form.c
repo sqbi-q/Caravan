@@ -51,10 +51,11 @@ void aewl_form_add_widget(AewlForm *f, AewlWidget *wid) {
    wid->form = f;      /* tell widget which form it belongs to */
    wid->next = NULL;   /* will be the end of the list */
 
+   f->last_widget = wid;
    if (!f->first_widget)        /* form's first widget */
-      f->first_widget = f->last_widget = wid;
+      f->first_widget = wid;
    else                         /* append to end of list */
-      f->last_widget->next = f->last_widget = wid;
+      f->last_widget->next = wid;
 
    /* if this widget is focusable, and form does not yet have a focused
     * widget, this one becomes the focused widget */

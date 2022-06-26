@@ -60,7 +60,8 @@ void document_destroy(Document *doc) {
 }
 
 void document_add_layer(Document *doc, Layer *layer) {
-   (doc->layers = srealloc(doc->layers, (++doc->layer_count) * sizeof(Layer*)))
+   ++doc->layer_count;
+   (doc->layers = srealloc(doc->layers, doc->layer_count * sizeof(Layer*)))
                   [doc->layer_count-1] = layer;
 }
 
