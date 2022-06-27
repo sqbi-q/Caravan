@@ -17,17 +17,17 @@ License along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 Copyright (c) 2002 Bruno T. C. de Oliveira
 
-INFORMA«’ES DE LICEN«A:
-Este programa È um software de livre distribuiÁ„o; vocÍ pode
-redistribuÌ-lo e/ou modific·-lo sob os termos da GNU General
+INFORMA√á√ïES DE LICEN√áA:
+Este programa √© um software de livre distribui√ß√£o; voc√™ pode
+redistribu√≠-lo e/ou modific√°-lo sob os termos da GNU General
 Public License, conforme publicado pela Free Software Foundation,
-pela vers„o 2 da licenÁa ou qualquer vers„o posterior.
+pela vers√£o 2 da licen√ßa ou qualquer vers√£o posterior.
 
-Este programa È distribuÌdo na esperanÁa de que ele ser· ˙til
-aos seus usu·rios, porÈm, SEM QUAISQUER GARANTIAS; sem sequer
-a garantia implÌcita de COMERCIABILIDADE ou DE ADEQUA«√O A
-QUALQUER FINALIDADE ESPECÕFICA. Consulte a GNU General Public
-License para obter mais detalhes (uma cÛpia acompanha este
+Este programa √© distribu√≠do na esperan√ßa de que ele ser√° √∫til
+aos seus usu√°rios, por√©m, SEM QUAISQUER GARANTIAS; sem sequer
+a garantia impl√≠cita de COMERCIABILIDADE ou DE ADEQUA√á√ÉO A
+QUALQUER FINALIDADE ESPEC√çFICA. Consulte a GNU General Public
+License para obter mais detalhes (uma c√≥pia acompanha este
 programa, armazenada no arquivo COPYING).
 */
 
@@ -49,6 +49,7 @@ programa, armazenada no arquivo COPYING).
 #include "welcomedlg.h"
 #include "keybind.h"
 #include "init_aewl.h"
+#include "widechar.h"
 
 /* ----------------------------------------------------------------------- */
 /* function declarations                                                   */
