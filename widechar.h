@@ -13,4 +13,8 @@ void getch_wint(int* dest_wint);
  * with %s format. */
 void winttwch(char* dest_wch, int* src_wint);
 
+/* Returns length of a wint (int[4], null-terminated), excluding
+ * terminating null. */
+unsigned wchlength(int* wint);
+
 #endif

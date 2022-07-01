@@ -26,3 +26,9 @@ void winttwch(char* dest_wch, int* src_wint) {
    dest_wch[i] = '\0';
 }
 
+unsigned wchlength(int* wint) {
+    unsigned count = 0;
+    while (wint[count] != '\0') count++;
+    return count;
+}
+
