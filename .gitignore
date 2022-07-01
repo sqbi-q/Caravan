@@ -7,3 +7,6 @@ aecat
 aemakeflic
 aewan
 depends
+
+.cache/
+compile_commands.json
