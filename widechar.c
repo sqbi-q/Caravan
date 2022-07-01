@@ -2,13 +2,15 @@
 
 #include "widechar.h"
 
+#define MAX_WCHAR_SIZE 4
+
 void getch_wint(int* dest_wint) {
    dest_wint[0] = getch(); /* call blocking getch */ 
    nodelay(stdscr, TRUE); /* now cause non-blocking getch calls */ 
    
    unsigned i=1;
    dest_wint[i] = getch();
-   while (dest_wint[i] != ERR) { /* getch until input queue is empty */
+   while (dest_wint[i] != ERR && i < MAX_WCHAR_SIZE-1) { /* getch until input queue is empty */
      i++;
      dest_wint[i] = getch();
    }
