@@ -39,7 +39,11 @@ programa, armazenada no arquivo COPYING).
 #include "layer.h"
 #include "chtr.h"
 
+#if ENABLE_WIDECHAR
+const Cell BLANK_CELL = {{' ', '\0'}, 0x70};
+#else
 const Cell BLANK_CELL = { ' ', 0x70 };
+#endif
 
 Layer *layer_create(const char *layer_name, int width, int height) {
    int i, j;

@@ -39,7 +39,14 @@ programa, armazenada no arquivo COPYING).
 #include "bores/bores.h"
 #include <stdio.h>
 #include "aeff.h"
+#include "widechar.h"
 
+#if ENABLE_WIDECHAR
+struct _Cell {
+   int ch[4];            /* wide character that occupies this cell. */
+   unsigned char attr;
+};
+#else
 struct _Cell {
    unsigned char ch;   /* character that occupies this cell.
                         * Since a control character may never be in a cell,
@@ -50,6 +57,7 @@ struct _Cell {
 
    unsigned char attr; /* attribute of the character */
 };
+#endif
 typedef struct _Cell Cell;
 
 struct _Layer {
