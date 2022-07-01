@@ -28,6 +28,16 @@ void winttwch(char* dest_wch, int* src_wint) {
    dest_wch[i] = '\0';
 }
 
+int* wintcpy(int* dest, int* src) {
+    unsigned i=0;
+    while (src[i] != '\0') {
+        dest[i] = src[i];
+        i++;
+    }
+    dest[i] = src[i];
+    return dest;
+}
+
 unsigned wchlength(int* wint) {
     unsigned count = 0;
     while (wint[count] != '\0') count++;
