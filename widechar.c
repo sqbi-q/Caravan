@@ -2,17 +2,27 @@
 
 #include "widechar.h"
 
-void getch_widechar(char* dest_wch) {
-   dest_wch[0] = getch(); /* call still blocking getch */ 
+void getch_wint(int* dest_wint) {
+   dest_wint[0] = getch(); /* call blocking getch */ 
    nodelay(stdscr, TRUE); /* now cause non-blocking getch calls */ 
    
-   unsigned int i=1;
-   dest_wch[i] = getch();
-   while (dest_wch[i] != ERR) { /* getch until input queue is empty */
+   unsigned i=1;
+   dest_wint[i] = getch();
+   while (dest_wint[i] != ERR) { /* getch until input queue is empty */
      i++;
-     dest_wch[i] = getch();
+     dest_wint[i] = getch();
    }
    
-   dest_wch[i] = '\0';
+   dest_wint[i] = '\0';
    nodelay(stdscr, FALSE);
 }
+
+void winttwch(char* dest_wch, int* src_wint) {
+   unsigned i=0;
+   while (src_wint[i] != '\0') {
+      dest_wch[i] = (char)(src_wint[i]);
+      i++;
+   }
+   dest_wch[i] = '\0';
+}
+
