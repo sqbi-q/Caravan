@@ -58,6 +58,7 @@ programa, armazenada no arquivo COPYING).
 #include "menubar.h"
 #include "welcomedlg.h"
 #include "filedlg.h"
+#include "widechar.h"
 
 #define FAST_MOVE_AMOUNT 8  /* how much the cursor moves each time the fast
                              * movent keys (Ctrl+Z, Ctrl+X) are pressed */
@@ -127,7 +128,7 @@ static void u_resize_layer(void) {
 
    for (y = 0; y < h; y++)
       for (x = 0; x < w; x++) {
-         new_l->cells[x][y].ch   = l->cells[x][y].ch;
+         memcpy(new_l->cells[x][y].ch, l->cells[x][y].ch, sizeof(l->cells[x][y].ch));
          new_l->cells[x][y].attr = l->cells[x][y].attr;
       }
 
@@ -494,7 +495,13 @@ void handle_key(int ch) {
             lyr->cells[x][_y] = lyr->cells[x-1][_y];
       }
       
+      #if ENABLE_WIDECHAR
+      lyr->cells[_x][_y].ch[0] = ch_to_put;
+      lyr->cells[_x][_y].ch[1] = ch_to_put;
+      #else
       lyr->cells[_x][_y].ch = ch_to_put;
+      #endif
+
       lyr->cells[_x][_y].attr = _fg << 4 | _bg;
       _x++;
    }
@@ -519,6 +526,38 @@ void handle_key(int ch) {
 
    correct_coords();
 };
+
+
+void handle_wchkey(int* wch) {
+    int wch_size = wchlength(wch);
+    if (wch_size == 1) { //if single char, use standard function
+        handle_key(wch[0]);
+        return;
+    }
+
+    Layer *lyr;
+
+    /* key does not trigger a command; handle it normally if there are
+     * layers in the document; ignore it if there aren't */
+    if (!_doc->layer_count) return;
+    lyr = _doc->layers[_lyr];
+
+    /* interpret character keys for no-selection mode */
+    if (_selmode != SM_NONE) return;
+    
+    if (_insmode) {
+        int x;
+        for (x = lyr->width - 1; x > _x; x--)
+            lyr->cells[x][_y] = lyr->cells[x-1][_y];
+    }
+      
+    wintcpy(lyr->cells[_x][_y].ch, wch);
+    lyr->cells[_x][_y].attr = _fg << 4 | _bg;
+    _x++;
+
+   correct_coords(); /* TODO diagnoze what this does */
+}
+
 
 void handle_command(int command) {
    int newfg, newbg;

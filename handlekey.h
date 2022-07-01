@@ -37,6 +37,10 @@ programa, armazenada no arquivo COPYING).
 /* Reacts to keypress. <ch> is the code of the key that was pressed */
 void handle_key(int ch);
 
+/* Similar to handle_key(). <wch> is wide character representation 
+ * (int[4], null-terminated) of pressed key.  */
+void handle_wchkey(int* wch);
+
 /* Reacts to the command <cmd>. Called from handle_key. */
 void handle_command(int cmd);
 
