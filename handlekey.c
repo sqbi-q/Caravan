@@ -128,7 +128,11 @@ static void u_resize_layer(void) {
 
    for (y = 0; y < h; y++)
       for (x = 0; x < w; x++) {
-         memcpy(new_l->cells[x][y].ch, l->cells[x][y].ch, sizeof(l->cells[x][y].ch));
+         #if ENABLE_WIDECHAR
+         wintcpy(new_l->cells[x][y].ch, l->cells[x][y].ch);
+         #else
+         new_l->cells[x][y].ch = l->cells[x][y].ch;
+         #endif
          new_l->cells[x][y].attr = l->cells[x][y].attr;
       }
 
@@ -550,8 +554,9 @@ void handle_wchkey(int* wch) {
         for (x = lyr->width - 1; x > _x; x--)
             lyr->cells[x][_y] = lyr->cells[x-1][_y];
     }
-      
+    #if ENABLE_WIDECHAR 
     wintcpy(lyr->cells[_x][_y].ch, wch);
+    #endif
     lyr->cells[_x][_y].attr = _fg << 4 | _bg;
     _x++;
 

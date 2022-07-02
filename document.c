@@ -37,6 +37,7 @@ programa, armazenada no arquivo COPYING).
 #include <errno.h>
 
 #include "document.h"
+#include "widechar.h"
 
 #define DEFAULT_NOM_WIDTH   80
 #define DEFAULT_NOM_HEIGHT  25
@@ -210,8 +211,12 @@ Document *document_load_OLD(FILE *f) {
 Cell document_calc_effective_cell(Document *doc, int x, int y) {
    int i;
    Layer *lyr;
+   #if ENABLE_WIDECHAR
+   Cell result = {{0x20, 0}, 0x70};
+   #else
    Cell result;
    result.ch = 0x20, result.attr = 0x70;
+   #endif
 
    for (i = doc->layer_count - 1; i >= 0; i--) {
       lyr = doc->layers[i];
@@ -219,7 +224,11 @@ Cell document_calc_effective_cell(Document *doc, int x, int y) {
       if (!lyr->visible) continue;
       if (lyr->transp && is_cell_transp(&lyr->cells[x][y])) continue;
 
+      #if ENABLE_WIDECHAR
+      wintcpy(result.ch, lyr->cells[x][y].ch);
+      #else 
       result.ch = lyr->cells[x][y].ch;
+      #endif
       result.attr = lyr->cells[x][y].attr;
    }
 

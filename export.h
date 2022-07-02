@@ -39,6 +39,7 @@ programa, armazenada no arquivo COPYING).
 #include <stdbool.h>
 #include "layer.h"
 #include "vlayer.h"
+#include "widechar.h"
 
 /* Exports the given virtual layer to text format, writing the output to the
  * given file. The parameter use_ansi_escape determines whether the function
@@ -57,7 +58,12 @@ typedef struct {  /* represents a decoded document cell. Returned
 
    int fg, bg;      /* the foreground and background color codes (4 bit, 0-15)
                      * for the cell */
+   
+   #if ENABLE_WIDECHAR
+   int ch[4];
+   #else
    int ch;          /* the character in the cell */
+   #endif   
 
    /* now some of the same information, but in a more broken-down form: */
    bool bold, blink;  /* bold and blink attributes */
