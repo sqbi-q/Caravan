@@ -35,9 +35,11 @@ programa, armazenada no arquivo COPYING).
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
+#include <wchar.h>
 
 #include "layer.h"
 #include "chtr.h"
+#include "widechar.h"
 
 #if ENABLE_WIDECHAR
 const Cell BLANK_CELL = {{' ', '\0'}, 0x70};
@@ -60,7 +62,11 @@ Layer *layer_create(const char *layer_name, int width, int height) {
    for (i = 0; i < width; i++) {
       layer->cells[i] = (Cell*) zalloc(height * sizeof(Cell));
       for (j = 0; j < height; j++) {
+         #if ENABLE_WIDECHAR
+         memcpy(layer->cells[i][j].ch, " ", sizeof(" "));
+         #else
          layer->cells[i][j].ch   = ' ';
+         #endif
          layer->cells[i][j].attr = 0x70;
       }
    }
@@ -78,7 +84,11 @@ void layer_destroy(Layer *layer) {
 }
 
 bool is_cell_transp(const Cell *c) {
+   #if ENABLE_WIDECHAR
+   return wchlength((int*)c->ch) == 1 && c->ch[0] == ' ' && c->attr == 0x70;
+   #else
    return c->ch == ' ' && c->attr == 0x70;
+   #endif
 }
 
 void layer_blit(Layer *src, int xsrc, int ysrc, int width, int height,
@@ -116,7 +126,13 @@ void layer_paint(Layer *layer, int x0, int y0, int xclip, int yclip,
                  int wclip, int hclip,
                  void (*modify)(int x, int y, int *ch, int *attr)) {
                  
-   int x, xi, xf; int y, yi, yf; int ch, attr;
+   int x, xi, xf; int y, yi, yf; 
+   #if ENABLE_WIDECHAR
+   int ch[4];
+   #else
+   int ch;
+   #endif
+   int attr;
 
    interval_intersect(x0   , x0    + layer->width - 1, 
                       xclip, xclip + wclip        - 1,  &xi, &xf);
@@ -125,16 +141,31 @@ void layer_paint(Layer *layer, int x0, int y0, int xclip, int yclip,
    
    for (x = xi; x <= xf; x++) for (y = yi; y <= yf; y++) {
       if (!kurses_move(x, y)) continue;
-      ch   = layer->cells[x - x0][y - y0].ch;
+      #if ENABLE_WIDECHAR
+      wintcpy(ch, layer->cells[x - x0][y - y0].ch);
+      #else
+      ch = layer->cells[x - x0][y - y0].ch;
+      #endif
       attr = layer->cells[x - x0][y - y0].attr;
       
-      if (modify) (*modify)(x - x0, y - y0, &ch, &attr);
-      
+      if (modify) 
+          #if ENABLE_WIDECHAR
+          (*modify)(x - x0, y - y0, ch, &attr);
+          #else
+          (*modify)(x - x0, y - y0, &ch, &attr);
+          #endif
+
       if (layer->transp && 
           is_cell_transp(&layer->cells[x - x0][y - y0])) continue;
       
       kurses_color(attr >> 4, attr & 0x0F);
+      #if ENABLE_WIDECHAR
+      char wch[4];
+      winttwch(wch, ch);
+      printw("%s", wch);
+      #else
       addch(chtr_a2c(ch));
+      #endif
    }
 }
 
@@ -184,7 +215,10 @@ void layer_flip_x(Layer *layer, bool flipchars) {
    for (y = 0; y < layer->height; y++) {
       for (x = 0; x < layer->width; x++) { 
          Cell c = tmp->cells[x][y];
+         
+         #if ENABLE_WIDECHAR == 0
          if (flipchars) c.ch = tbl_lookup(flip_table, c.ch);
+         #endif
 
          layer->cells[layer->width - x - 1][y] = c;
       }
@@ -205,7 +239,10 @@ void layer_flip_y(Layer *layer, bool flipchars) {
    for (y = 0; y < layer->height; y++) {
       for (x = 0; x < layer->width; x++) { 
          Cell c = tmp->cells[x][y];
+
+         #if ENABLE_WIDECHAR == 0
          if (flipchars) c.ch = tbl_lookup(flip_table, c.ch);
+         #endif
 
          layer->cells[x][layer->height - y - 1] = c;
       }
@@ -225,6 +262,8 @@ void layer_save(Layer *lyr, AeFile *f) {
    aeff_write_bool(f, "visible", lyr->visible);
    aeff_write_bool(f, "transparent", lyr->transp);
    
+   /* TODO implement layer_save() */
+   #if ENABLE_WIDECHAR == 0
    for (y = 0; y < lyr->height; y++) {
       /* fill in buf with current line (decoded into hex duplets) */
       for (x = 0; x < lyr->width; x++) {
@@ -235,6 +274,7 @@ void layer_save(Layer *lyr, AeFile *f) {
       /* save line to file */
       aeff_write_string(f, "layer-line", buf);
    }
+   #endif
 
    aeff_write_footer(f, "Layer");
    zfree(&buf);
@@ -258,6 +298,8 @@ Layer *layer_load(AeFile *f) {
    if (!aeff_read_bool(f, "visible", &lyr->visible)) goto exception;
    if (!aeff_read_bool(f, "transparent", &lyr->transp)) goto exception;
 
+   /* TODO implement layer_load() */
+   #if ENABLE_WIDECHAR == 0
    for (y = 0; y < lyr->height; y++) {
       if (!aeff_read_string(f, "layer-line", &buf)) goto exception;
 
@@ -275,6 +317,7 @@ Layer *layer_load(AeFile *f) {
    
       zfree(&buf);
    }
+   #endif
 
    aeff_read_footer(f, "Layer");
 
@@ -309,7 +352,11 @@ Layer *layer_load_OLD(FILE *f) {
    l->transp = t;
    
    for (x = 0; x < width; x++) for (y = 0; y < height; y++) {
+      #if ENABLE_WIDECHAR
+      fgetws(l->cells[x][y].ch, 4, f);
+      #else 
       l->cells[x][y].ch   = fgetc(f);
+      #endif
       l->cells[x][y].attr = fgetc(f);
    }
    
