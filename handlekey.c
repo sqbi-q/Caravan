@@ -501,7 +501,9 @@ void handle_key(int ch) {
       
       #if ENABLE_WIDECHAR
       lyr->cells[_x][_y].ch[0] = ch_to_put;
-      lyr->cells[_x][_y].ch[1] = ch_to_put;
+      lyr->cells[_x][_y].ch[1] = 0;
+      lyr->cells[_x][_y].ch[2] = 0;
+      lyr->cells[_x][_y].ch[3] = 0;
       #else
       lyr->cells[_x][_y].ch = ch_to_put;
       #endif

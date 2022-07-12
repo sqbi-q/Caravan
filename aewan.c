@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
    while (1) {
       paint_screen();
       #if ENABLE_WIDECHAR
-      int dest_wch[4];
+      int dest_wch[4] = {0, 0, 0, 0};
       getch_wint(dest_wch);
       handle_wchkey(dest_wch);
       #else
