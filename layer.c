@@ -253,7 +253,11 @@ void layer_flip_y(Layer *layer, bool flipchars) {
 
 void layer_save(Layer *lyr, AeFile *f) {
    int x, y;
+   #if ENABLE_WIDECHAR
+   char *buf = zalloc(lyr->width * 8 + 1);
+   #else
    char *buf = zalloc(lyr->width * 4 + 1);
+   #endif
 
    aeff_write_header(f, "Layer");
    aeff_write_string(f, "name", lyr->name ? lyr->name : "unnamed");
@@ -262,19 +266,24 @@ void layer_save(Layer *lyr, AeFile *f) {
    aeff_write_bool(f, "visible", lyr->visible);
    aeff_write_bool(f, "transparent", lyr->transp);
    
-   /* TODO implement layer_save() */
-   #if ENABLE_WIDECHAR == 0
    for (y = 0; y < lyr->height; y++) {
-      /* fill in buf with current line (decoded into hex duplets) */
       for (x = 0; x < lyr->width; x++) {
+         #if ENABLE_WIDECHAR
+         chr2hex(lyr->cells[x][y].ch[0], &buf[x * 8]);
+         chr2hex(lyr->cells[x][y].ch[1], &buf[x * 8 + 2]);
+         chr2hex(lyr->cells[x][y].ch[2], &buf[x * 8 + 4]);
+         chr2hex(lyr->cells[x][y].attr,  &buf[x * 8 + 6]); 
+         #else
+
+         /* fill in buf with current line (decoded into hex duplets) */
          chr2hex(lyr->cells[x][y].ch, &buf[x * 4]);
-	 chr2hex(lyr->cells[x][y].attr, &buf[x * 4 + 2]);
+         chr2hex(lyr->cells[x][y].attr, &buf[x * 4 + 2]);
+         #endif
       }
 
       /* save line to file */
       aeff_write_string(f, "layer-line", buf);
    }
-   #endif
 
    aeff_write_footer(f, "Layer");
    zfree(&buf);
@@ -298,15 +307,22 @@ Layer *layer_load(AeFile *f) {
    if (!aeff_read_bool(f, "visible", &lyr->visible)) goto exception;
    if (!aeff_read_bool(f, "transparent", &lyr->transp)) goto exception;
 
-   /* TODO implement layer_load() */
-   #if ENABLE_WIDECHAR == 0
    for (y = 0; y < lyr->height; y++) {
       if (!aeff_read_string(f, "layer-line", &buf)) goto exception;
 
-      if (strlen(buf) != lyr->width * 4) {
+      if (strlen(buf) != lyr->width * 8) {
          aeff_set_error("layer-line line has incorrect width");
 	 goto exception;
       }
+
+      #if ENABLE_WIDECHAR
+      for (x = 0; x < lyr->width; x++) {
+         lyr->cells[x][y].ch[0] = hex2chr(&buf[x * 8]);
+         lyr->cells[x][y].ch[1] = hex2chr(&buf[x * 8 + 2]);
+         lyr->cells[x][y].ch[2] = hex2chr(&buf[x * 8 + 4]);
+         lyr->cells[x][y].attr  = hex2chr(&buf[x * 8 + 6]);
+      }
+      #else
 
       /* interpret buf as width*4 hex duplets specifying char and attribute
        * for each cell in the line */
@@ -314,10 +330,10 @@ Layer *layer_load(AeFile *f) {
          lyr->cells[x][y].ch   = hex2chr(&buf[x * 4]);
 	 lyr->cells[x][y].attr = hex2chr(&buf[x * 4 + 2]);
       }
+      #endif
    
       zfree(&buf);
    }
-   #endif
 
    aeff_read_footer(f, "Layer");
 
