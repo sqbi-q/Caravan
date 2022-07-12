@@ -37,6 +37,7 @@ programa, armazenada no arquivo COPYING).
 #include <stdbool.h>
 
 #include "bores/bores.h"
+#include "widechar.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -144,12 +145,26 @@ void output_html(void) {
   	    cur_state.font_tag_open = true;
 	 }
 	 
-	 /* now render the character */
+         /* now render the character */
+         #if ENABLE_WIDECHAR
+         if (wchlength(dec.ch) == 1) {
+            int ch = dec.ch[0];
+            if (ch >= 0 && ch <= 32)           fputs(" ", f);
+            else if (ch == '&')                fputs("&amp;", f);
+            else if (ch == '<')                fputs("&lt;", f);
+            else if (ch == '>')                fputs("&gt;", f);
+         } else {
+             char wch[4];
+             winttwch(wch, dec.ch);
+             fputs(wch, f);
+         }
+         #else
          if (dec.ch >= 0 && dec.ch <= 32) fputs(" ", f);
-	 else if (dec.ch == '&')          fputs("&amp;", f);
+         else if (dec.ch == '&')          fputs("&amp;", f);
          else if (dec.ch == '<')          fputs("&lt;", f);
-	 else if (dec.ch == '>')          fputs("&gt;", f);
+         else if (dec.ch == '>')          fputs("&gt;", f);
          else                             fputc(dec.ch, f);
+         #endif
       }
       fputs("\n", f);
    }
