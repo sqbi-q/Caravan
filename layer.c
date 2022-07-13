@@ -194,6 +194,7 @@ Layer *layer_dup(const char *layer_name, Layer *model) {
 /* table is a vector of two strings. If ch is found in table[0] at position n,
  * return value is table[1][n]. Else, return value is ch. 
  * table[0] and table[1] are assumed to be of the same size. */
+#if ENABLE_WIDECHAR == 0
 static char tbl_lookup(char **table, int ch) {
    const char *s = table[0], *p = table[1];
    while (*s) {
@@ -202,14 +203,17 @@ static char tbl_lookup(char **table, int ch) {
    }
    return ch;
 }
+#endif
 
 void layer_flip_x(Layer *layer, bool flipchars) {
    Layer *tmp;
    int x, y;
+   #if ENABLE_WIDECHAR == 0
    static char *flip_table[2] = {
        "`'()/\\<>[]{}\x03\x05\x06\x08\x09\x0b", /* funny hex chars are line */
        "'`)(\\/><][}{\x05\x03\x08\x06\x0b\x09"  /* drawing chars (see chtr.h) */
    };
+   #endif
    
    tmp = layer_dup("tmp", layer);
    for (y = 0; y < layer->height; y++) {
@@ -230,10 +234,12 @@ void layer_flip_x(Layer *layer, bool flipchars) {
 void layer_flip_y(Layer *layer, bool flipchars) {
    Layer *tmp;
    int x, y;
+   #if ENABLE_WIDECHAR == 0 
    static char *flip_table[2] = {
       "/\\\x03\x09\x04\x0a\x05\x0b",
       "\\/\x09\x03\x0a\x04\x0b\x05"
    };
+   #endif
 
    tmp = layer_dup("tmp", layer);
    for (y = 0; y < layer->height; y++) {
