@@ -33,7 +33,7 @@ void getch_wint(int* dest_wint) {
    nodelay(stdscr, FALSE);
 }
 
-void winttwch(char* dest_wch, int* src_wint) {
+void winttwch(char* dest_wch, const int* src_wint) {
    unsigned i=0;
    while (src_wint[i] != '\0') {
       dest_wch[i] = (char)(src_wint[i]);
@@ -42,7 +42,7 @@ void winttwch(char* dest_wch, int* src_wint) {
    dest_wch[i] = '\0';
 }
 
-int* wintcpy(int* dest, int* src) {
+int* wintcpy(int* dest, const int* src) {
     unsigned i=0;
     while (src[i] != '\0') {
         dest[i] = src[i];
@@ -52,7 +52,7 @@ int* wintcpy(int* dest, int* src) {
     return dest;
 }
 
-unsigned wchlength(int* wint) {
+unsigned wchlength(const int* wint) {
     unsigned count = 0;
     while (wint[count] != '\0') count++;
     return count;

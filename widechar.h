@@ -13,13 +13,13 @@ void getch_wint(int* dest_wint);
  * and assigns it to dest_wch (char[4], null-terminated).
  * char[4] representation helps with writing wide char using printw() 
  * with %s format. */
-void winttwch(char* dest_wch, int* src_wint);
+void winttwch(char* dest_wch, const int* src_wint);
 
 /* Copies characters from src (wint) to dest (wint). */
-int* wintcpy(int* dest, int* src);
+int* wintcpy(int* dest, const int* src);
 
 /* Returns length of a wint (int[4], null-terminated), excluding
  * terminating null. */
-unsigned wchlength(int* wint);
+unsigned wchlength(const int* wint);
 
 #endif
