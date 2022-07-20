@@ -10,7 +10,7 @@ static void _get_cell_LYR(Cell *r_cell, int x, int y, void *ud) {
 
 /* callback that returns a cell from a document composite */
 static void _get_cell_COMPOSITE(Cell *r_cell, int x, int y, void *ud) {
-   Document *doc = (Document*) doc;
+   Document *doc = (Document*) ud;
    *r_cell = document_calc_effective_cell(doc, x, y);
 }
 
