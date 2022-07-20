@@ -8,7 +8,7 @@ void getch_wint(int* dest_wint) {
    dest_wint[0] = getch(); /* call blocking getch */ 
    nodelay(stdscr, TRUE); /* now cause non-blocking getch calls */ 
    
-   unsigned ch_len = MAX_WCHAR_SIZE-1;
+   unsigned ch_len = 1;
    /* https://www.fileformat.info/info/unicode/utf8.htm 
     * The value of each individual byte indicates its UTF-8 function, as follows:
     *    00 to 7F hex (0 to 127): first and only byte of a sequence.
