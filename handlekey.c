@@ -535,8 +535,7 @@ void handle_key(int ch) {
 
 
 void handle_wchkey(int* wch) {
-    int wch_size = wchlength(wch);
-    if (wch_size == 1) { //if single char, use standard function
+    if ((wch[0] >= 0x00 && wch[0] <= 0x7F) || wch[0] > 0xFF) { //if single or special char, use standard function
         handle_key(wch[0]);
         return;
     }

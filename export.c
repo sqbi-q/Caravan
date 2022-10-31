@@ -79,14 +79,14 @@ bool export_vlayer_to_ansi(VirtualLayer *vl, bool use_ansi, bool use_newlines,
          /* output the character */
 
          #if ENABLE_WIDECHAR
-            char wch[4];
+            char wch[5];
             winttwch(wch, dec.ch);
-            if (wchlength(dec.ch) == 1){ /* If widechar and only one character */
-                if (wch[0] >= 0 && wch[0] <= 32) wch[0] = ' ';
-                if(quotemeta && strchr(must_quote, dec.ch[0])) { fputc('\\', f); }
-            }
+            
+            if (wch[0] >= 0 && wch[0] <= 32) wch[0] = ' ';
+           
+            if (quotemeta && strchr(must_quote, dec.ch[0])) fputc('\\', f);
             fputs(wch, f);
-         #else
+        #else
             if (dec.ch >= 0 && dec.ch <= 32) dec.ch = ' ';
 
             if (quotemeta && strchr(must_quote, dec.ch)) fputc('\\', f);

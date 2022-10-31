@@ -147,14 +147,13 @@ void output_html(void) {
 	 
          /* now render the character */
          #if ENABLE_WIDECHAR
-         if (wchlength(dec.ch) == 1) {
-            int ch = dec.ch[0];
-            if (ch >= 0 && ch <= 32)           fputs(" ", f);
-            else if (ch == '&')                fputs("&amp;", f);
-            else if (ch == '<')                fputs("&lt;", f);
-            else if (ch == '>')                fputs("&gt;", f);
-         } else {
-             char wch[4];
+         int ch = dec.ch[0];
+         if (ch >= 0 && ch <= 32)           fputs(" ", f);
+         else if (ch == '&')                fputs("&amp;", f);
+         else if (ch == '<')                fputs("&lt;", f);
+         else if (ch == '>')                fputs("&gt;", f);
+         else {
+             char wch[5];
              winttwch(wch, dec.ch);
              fputs(wch, f);
          }

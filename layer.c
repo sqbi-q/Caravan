@@ -42,7 +42,8 @@ programa, armazenada no arquivo COPYING).
 #include "widechar.h"
 
 #if ENABLE_WIDECHAR
-const Cell BLANK_CELL = {{' ', '\0'}, 0x70};
+//const Cell BLANK_CELL = {{0, 0, 0, 0}, 0x70};
+const Cell BLANK_CELL = {{' ', 0, 0, 0}, 0x70};
 #else
 const Cell BLANK_CELL = { ' ', 0x70 };
 #endif
@@ -63,7 +64,7 @@ Layer *layer_create(const char *layer_name, int width, int height) {
       layer->cells[i] = (Cell*) zalloc(height * sizeof(Cell));
       for (j = 0; j < height; j++) {
          #if ENABLE_WIDECHAR
-         memcpy(layer->cells[i][j].ch, " ", sizeof(" "));
+         layer->cells[i][j].ch[0] = ' ';
          #else
          layer->cells[i][j].ch   = ' ';
          #endif
@@ -85,7 +86,7 @@ void layer_destroy(Layer *layer) {
 
 bool is_cell_transp(const Cell *c) {
    #if ENABLE_WIDECHAR
-   return wchlength((int*)c->ch) == 1 && c->ch[0] == ' ' && c->attr == 0x70;
+   return c->ch[0] == ' ' && c->attr == 0x70;
    #else
    return c->ch == ' ' && c->attr == 0x70;
    #endif
@@ -160,7 +161,7 @@ void layer_paint(Layer *layer, int x0, int y0, int xclip, int yclip,
       
       kurses_color(attr >> 4, attr & 0x0F);
       #if ENABLE_WIDECHAR
-      char wch[4];
+      char wch[5];
       winttwch(wch, ch);
       printw("%s", wch);
       #else

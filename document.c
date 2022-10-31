@@ -212,7 +212,7 @@ Cell document_calc_effective_cell(Document *doc, int x, int y) {
    int i;
    Layer *lyr;
    #if ENABLE_WIDECHAR
-   Cell result = {{0x20, 0}, 0x70};
+   Cell result = {{0x20, 0, 0, 0}, 0x70};
    #else
    Cell result;
    result.ch = 0x20, result.attr = 0x70;
