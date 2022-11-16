@@ -20,7 +20,7 @@
  
 sources=$(wildcard *.c) $(wildcard aewl/*.c) $(wildcard bores/*.c)
 headers=$(wildcard *.h) $(wildcard bores/*.h) $(wildcard aewl/*.h)
-execs=caravan@EXESUF@ caracat@EXESUF@ camakeflic@EXESUF@
+execs=caravan@EXESUF@ caracat@EXESUF@ aemakeflic@EXESUF@
 mainobjs=$(patsubst %@EXESUF@,%.o,$(execs))
 objects=$(filter-out $(mainobjs), $(patsubst %.c,%.o,$(sources)))
 
