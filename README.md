@@ -4,6 +4,8 @@ Caravan is multi-layered ASCII/Unicode-art editor, which goal is implementation 
 
 This project is fork of [Aewan](http://aewan.sourceforge.net) - created by Bruno Takahashi C. de Oliveira and licensed under the GNU General Public License.
 
+For a full list of authors, please see the CREDITS file.
+
 # Installation
 
 After cloning this repository, you compile and install it the same way as provided by [Aewan's README](./README):
