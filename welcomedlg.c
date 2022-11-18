@@ -26,19 +26,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #include "welcomedlg.h"
 #include "psd.h"
 
-#define LOGO_WIDTH 11
+#define LOGO_WIDTH 14
 #define LOGO_HEIGHT 5
 
 static char* logo[] = {
-   "79         ",
-   "||         ",
-   "46799 97979",
-   "||43|||||||",
-   "311-1231231",
+   "7--9          ",
+   "|  3          ",
+   "| 797979977979",
+   "| 4||34|||4|||",
+   "1-2231|1133131",
    NULL
 };
 
-static int logo_colors[LOGO_HEIGHT] = { 4, 6, 7, 6, 4 };
+static int logo_colors[LOGO_HEIGHT] = { 1, 1+8, 3+8, 3, 1 };   //Caravan Carmel color theme
 
 void show_welcome_dlg(void) {
    int x0, y0, x, y, ch, *clr;
@@ -56,14 +56,15 @@ void show_welcome_dlg(void) {
       ACS_URCORNER      /* 9 */
    };
 
-   kurses_color(4, 0);
-   draw_centered_window(46, 18, "Welcome to AEWAN", &x0, &y0);
-   y = y0 + 1;
+   kurses_color(3, 0);
+   draw_centered_window(46, 18, " Welcome to Caravan! ", &x0, &y0);
+   x = x0 + 23 - LOGO_WIDTH / 2 - 1;
+   y = y0;
 
    /* draw logo */
    for (p = logo, clr = logo_colors; *p; p++, clr++) {
       kurses_color(*clr, 0);
-      kurses_move(x0, y++);
+      kurses_move(x, y++);
       for (q = *p; *q; q++) {
          if (*q >= '0' && *q <= '9') ch = acschars[*q - '0'];
          else if (*q == '-')         ch = ACS_HLINE;
@@ -73,30 +74,39 @@ void show_welcome_dlg(void) {
       }
    }
 
-   /* draw program name next to logo */
-   x = x0 + LOGO_WIDTH + 2;
-   y = y0 + 1;
-   
-   kurses_move(x, y++);
-   kurses_color(4+8, 0);
-   addstr("AEWAN ascii art editor");
+   /* draw version next to logo */
+   y=y0; x = x0 + 23;
 
    kurses_move(x, y++);
-   kurses_color(7, 0);
-   addstr("Copyright (c) 2003");
-
-   kurses_move(x, y++);
-   addstr("Bruno T. C. de Oliveira");
-
-   kurses_move(x, y++);
-   addstr("All rights reserved.");
-   
-   y+=2; x = x0 + 1;
-   kurses_move(x, y++);
-   kurses_color(4+8, 0);
+   kurses_color(0+8, 0);
    addstr("Program version: ");
-   kurses_color(7, 0);
+   x+=1;
+   kurses_move(x, y);
+   kurses_color(0+8, 0);
    addstr(AEWAN_PROGRAM_VERSION " (" AEWAN_PROGRAM_VERSION_NAME ")");
+
+
+   /* draw program name below logo */
+   x = x0 + 6;
+   y = y0 + LOGO_HEIGHT;
+   
+   kurses_move(x, y++);
+   kurses_color(3+8, 0);
+   addstr("Caravan - ");   kurses_color(1+8, 0);
+   addstr("Cool ");
+   addstr("ASCII ");
+   addstr("Art ");
+   addstr("Editor");
+
+   x = x0 + 2;
+
+   kurses_move(x, y++);
+   kurses_color(7, 0);
+   addstr("Copyright (c) 2022 Caravan contributors");
+
+   y++;
+   kurses_move(x, y++);
+   addstr("Fork of Aewan (Bruno T. C. de Oliveira)");
 
    y++;
    kurses_move(x, y++);
@@ -113,7 +123,7 @@ void show_welcome_dlg(void) {
    addstr("Press RETURN to continue. When in the");
    kurses_move(x, y++);
    addstr("program, press <F1> to display a menu.");
-   
+
    getch();
 }
 
