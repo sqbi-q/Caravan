@@ -562,7 +562,7 @@ void handle_command(int command) {
    /* handle commands that work regardless of whether document is empty */
    switch (command) {
       case COMMAND_QUIT: 
-         ret = ui_ask_yn("Really quit aewan?", 0);
+         ret = ui_ask_yn("Really quit Caravan?", 0);
          if (!ui_cancel && ret) exit(0);
          break;
       case COMMAND_ADD_LAYER_DEFAULTS:
