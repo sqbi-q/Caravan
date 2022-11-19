@@ -1,4 +1,7 @@
 /*
+Copyright (c) 2022 the Caravan contributors
+For a full list of authors, please see the CREDITS file.
+Original work by
 Copyright (c) 2003 Bruno T. C. de Oliveira
 
 LICENSE INFORMATION:
@@ -15,20 +18,6 @@ General Public License for more details.
 You should have received a copy of the GNU General Public
 License along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-Copyright (c) 2002 Bruno T. C. de Oliveira
-
-INFORMAÇÕES DE LICENÇA:
-Este programa é um software de livre distribuição; você pode
-redistribuí-lo e/ou modificá-lo sob os termos da GNU General
-Public License, conforme publicado pela Free Software Foundation,
-pela versão 2 da licença ou qualquer versão posterior.
-
-Este programa é distribuído na esperança de que ele será útil
-aos seus usuários, porém, SEM QUAISQUER GARANTIAS; sem sequer
-a garantia implícita de COMERCIABILIDADE ou DE ADEQUAÇÃO A
-QUALQUER FINALIDADE ESPECÍFICA. Consulte a GNU General Public
-License para obter mais detalhes (uma cópia acompanha este
-programa, armazenada no arquivo COPYING).
 */
 
 #include "bores/bores.h"
@@ -37,6 +26,7 @@ programa, armazenada no arquivo COPYING).
 #include <errno.h>
 
 #include "document.h"
+#include "widechar.h"
 
 #define DEFAULT_NOM_WIDTH   80
 #define DEFAULT_NOM_HEIGHT  25
@@ -210,8 +200,12 @@ Document *document_load_OLD(FILE *f) {
 Cell document_calc_effective_cell(Document *doc, int x, int y) {
    int i;
    Layer *lyr;
+   #if ENABLE_WIDECHAR
+   Cell result = {{0x20, 0, 0, 0}, 0x70};
+   #else
    Cell result;
    result.ch = 0x20, result.attr = 0x70;
+   #endif
 
    for (i = doc->layer_count - 1; i >= 0; i--) {
       lyr = doc->layers[i];
@@ -219,7 +213,11 @@ Cell document_calc_effective_cell(Document *doc, int x, int y) {
       if (!lyr->visible) continue;
       if (lyr->transp && is_cell_transp(&lyr->cells[x][y])) continue;
 
+      #if ENABLE_WIDECHAR
+      wintcpy(result.ch, lyr->cells[x][y].ch);
+      #else 
       result.ch = lyr->cells[x][y].ch;
+      #endif
       result.attr = lyr->cells[x][y].attr;
    }
 

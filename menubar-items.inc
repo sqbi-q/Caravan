@@ -68,7 +68,7 @@ static Menu menu[] = {
                 { 'K', "&Key reference", COMMAND_SHOW_HELP_DLG,
                             "Shows a table of keys and their functions" },
                 { ' ', "", COMMAND_UNDEFINED, NULL }, 
-                { 'A', "&About Aewan", COMMAND_SHOW_ABOUT_DLG,
+                { 'A', "&About Caravan", COMMAND_SHOW_ABOUT_DLG,
                                   "Shows information about the program" },
        }
    },

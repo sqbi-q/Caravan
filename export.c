@@ -1,4 +1,7 @@
 /*
+Copyright (c) 2022 the Caravan contributors
+For a full list of authors, please see the CREDITS file.
+Original work by
 Copyright (c) 2003 Bruno T. C. de Oliveira
 
 LICENSE INFORMATION:
@@ -15,29 +18,21 @@ General Public License for more details.
 You should have received a copy of the GNU General Public
 License along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-Copyright (c) 2002 Bruno T. C. de Oliveira
-
-INFORMAÇÕES DE LICENÇA:
-Este programa é um software de livre distribuição; você pode
-redistribuí-lo e/ou modificá-lo sob os termos da GNU General
-Public License, conforme publicado pela Free Software Foundation,
-pela versão 2 da licença ou qualquer versão posterior.
-
-Este programa é distribuído na esperança de que ele será útil
-aos seus usuários, porém, SEM QUAISQUER GARANTIAS; sem sequer
-a garantia implícita de COMERCIABILIDADE ou DE ADEQUAÇÃO A
-QUALQUER FINALIDADE ESPECÍFICA. Consulte a GNU General Public
-License para obter mais detalhes (uma cópia acompanha este
-programa, armazenada no arquivo COPYING).
 */
 
 #include <string.h>
 #include "export.h"
+#include "widechar.h"
 
 void decode_cell(const Cell* cell, DecodedCell *dc) {
    dc->fg     = (cell->attr & 0xf0) >> 4;
    dc->bg     = cell->attr & 0x0f;
-   dc->ch     = cell->ch;
+   
+   #if ENABLE_WIDECHAR
+   wintcpy(dc->ch, cell->ch);
+   #else
+   dc->ch    = cell->ch;
+   #endif
 
    dc->fg3   = (cell->attr & 0x70) >> 4;
    dc->bg3   = cell->attr & 0x07;
@@ -71,10 +66,21 @@ bool export_vlayer_to_ansi(VirtualLayer *vl, bool use_ansi, bool use_newlines,
          }
 
          /* output the character */
-         if (dec.ch >= 0 && dec.ch <= 32) dec.ch = ' ';
 
-         if (quotemeta && strchr(must_quote, dec.ch)) fputc('\\', f);
-         fputc(dec.ch, f);
+         #if ENABLE_WIDECHAR
+            char wch[5];
+            winttwch(wch, dec.ch);
+            
+            if (wch[0] >= 0 && wch[0] <= 32) wch[0] = ' ';
+           
+            if (quotemeta && strchr(must_quote, dec.ch[0])) fputc('\\', f);
+            fputs(wch, f);
+        #else
+            if (dec.ch >= 0 && dec.ch <= 32) dec.ch = ' ';
+
+            if (quotemeta && strchr(must_quote, dec.ch)) fputc('\\', f);
+            fputc(dec.ch, f);
+         #endif
       }
       
       if (use_newlines) fputc('\n', f);

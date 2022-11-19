@@ -37,6 +37,7 @@ programa, armazenada no arquivo COPYING).
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <locale.h>
 
 /* mapping between color codes and curses pairs and attributes:
  *
@@ -78,6 +79,7 @@ SavedScreenNode *sss_top; /* sss = 'saved screen stack' */
 void kurses_init() {
    int fg, bg;
    
+   setlocale(LC_ALL, "");
    initscr();               /* enter screen-oriented mode */
    raw();                   /* don't treat Ctrl+C, etc. as special. */
    noecho();                /* don't echo typed characters back to terminal */

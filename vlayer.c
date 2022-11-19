@@ -1,5 +1,6 @@
 #include "bores/bores.h"
 #include "vlayer.h"
+#include <string.h>
 
 /* callback that returns a cell from a given layer */
 static void _get_cell_LYR(Cell *r_cell, int x, int y, void *ud) {
@@ -40,7 +41,11 @@ void vlayer_destroy(VirtualLayer *vl) {
 
 void vlayer_get_cell(VirtualLayer *vl, Cell *r_cell, int x, int y) {
    if (x < 0 || x >= vl->width || y < 0 || y >= vl->height) {
+      #if ENABLE_WIDECHAR
+      memcpy(r_cell->ch, " ", sizeof(" "));
+      #else
       r_cell->ch = ' ';
+      #endif
       r_cell->attr = 0x70;
    }
    else vl->get_cell(r_cell, x, y, vl->user_data);

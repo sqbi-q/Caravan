@@ -1,4 +1,7 @@
 /*
+Copyright (c) 2022 the Caravan contributors
+For a full list of authors, please see the CREDITS file.
+Original work by
 Copyright (c) 2003 Bruno T. C. de Oliveira
 
 LICENSE INFORMATION:
@@ -15,31 +18,24 @@ General Public License for more details.
 You should have received a copy of the GNU General Public
 License along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-Copyright (c) 2002 Bruno T. C. de Oliveira
-
-INFORMAÇÕES DE LICENÇA:
-Este programa é um software de livre distribuição; você pode
-redistribuí-lo e/ou modificá-lo sob os termos da GNU General
-Public License, conforme publicado pela Free Software Foundation,
-pela versão 2 da licença ou qualquer versão posterior.
-
-Este programa é distribuído na esperança de que ele será útil
-aos seus usuários, porém, SEM QUAISQUER GARANTIAS; sem sequer
-a garantia implícita de COMERCIABILIDADE ou DE ADEQUAÇÃO A
-QUALQUER FINALIDADE ESPECÍFICA. Consulte a GNU General Public
-License para obter mais detalhes (uma cópia acompanha este
-programa, armazenada no arquivo COPYING).
 */
 
 #include "bores/bores.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
+#include <wchar.h>
 
 #include "layer.h"
 #include "chtr.h"
+#include "widechar.h"
 
+#if ENABLE_WIDECHAR
+//const Cell BLANK_CELL = {{0, 0, 0, 0}, 0x70};
+const Cell BLANK_CELL = {{' ', 0, 0, 0}, 0x70};
+#else
 const Cell BLANK_CELL = { ' ', 0x70 };
+#endif
 
 Layer *layer_create(const char *layer_name, int width, int height) {
    int i, j;
@@ -56,7 +52,11 @@ Layer *layer_create(const char *layer_name, int width, int height) {
    for (i = 0; i < width; i++) {
       layer->cells[i] = (Cell*) zalloc(height * sizeof(Cell));
       for (j = 0; j < height; j++) {
+         #if ENABLE_WIDECHAR
+         layer->cells[i][j].ch[0] = ' ';
+         #else
          layer->cells[i][j].ch   = ' ';
+         #endif
          layer->cells[i][j].attr = 0x70;
       }
    }
@@ -74,7 +74,11 @@ void layer_destroy(Layer *layer) {
 }
 
 bool is_cell_transp(const Cell *c) {
+   #if ENABLE_WIDECHAR
+   return c->ch[0] == ' ' && c->attr == 0x70;
+   #else
    return c->ch == ' ' && c->attr == 0x70;
+   #endif
 }
 
 void layer_blit(Layer *src, int xsrc, int ysrc, int width, int height,
@@ -112,7 +116,13 @@ void layer_paint(Layer *layer, int x0, int y0, int xclip, int yclip,
                  int wclip, int hclip,
                  void (*modify)(int x, int y, int *ch, int *attr)) {
                  
-   int x, xi, xf; int y, yi, yf; int ch, attr;
+   int x, xi, xf; int y, yi, yf; 
+   #if ENABLE_WIDECHAR
+   int ch[4];
+   #else
+   int ch;
+   #endif
+   int attr;
 
    interval_intersect(x0   , x0    + layer->width - 1, 
                       xclip, xclip + wclip        - 1,  &xi, &xf);
@@ -121,16 +131,31 @@ void layer_paint(Layer *layer, int x0, int y0, int xclip, int yclip,
    
    for (x = xi; x <= xf; x++) for (y = yi; y <= yf; y++) {
       if (!kurses_move(x, y)) continue;
-      ch   = layer->cells[x - x0][y - y0].ch;
+      #if ENABLE_WIDECHAR
+      wintcpy(ch, layer->cells[x - x0][y - y0].ch);
+      #else
+      ch = layer->cells[x - x0][y - y0].ch;
+      #endif
       attr = layer->cells[x - x0][y - y0].attr;
       
-      if (modify) (*modify)(x - x0, y - y0, &ch, &attr);
-      
+      if (modify) 
+          #if ENABLE_WIDECHAR
+          (*modify)(x - x0, y - y0, ch, &attr);
+          #else
+          (*modify)(x - x0, y - y0, &ch, &attr);
+          #endif
+
       if (layer->transp && 
           is_cell_transp(&layer->cells[x - x0][y - y0])) continue;
       
       kurses_color(attr >> 4, attr & 0x0F);
+      #if ENABLE_WIDECHAR
+      char wch[5];
+      winttwch(wch, ch);
+      printw("%s", wch);
+      #else
       addch(chtr_a2c(ch));
+      #endif
    }
 }
 
@@ -159,6 +184,7 @@ Layer *layer_dup(const char *layer_name, Layer *model) {
 /* table is a vector of two strings. If ch is found in table[0] at position n,
  * return value is table[1][n]. Else, return value is ch. 
  * table[0] and table[1] are assumed to be of the same size. */
+#if ENABLE_WIDECHAR == 0
 static char tbl_lookup(char **table, int ch) {
    const char *s = table[0], *p = table[1];
    while (*s) {
@@ -167,20 +193,26 @@ static char tbl_lookup(char **table, int ch) {
    }
    return ch;
 }
+#endif
 
 void layer_flip_x(Layer *layer, bool flipchars) {
    Layer *tmp;
    int x, y;
+   #if ENABLE_WIDECHAR == 0
    static char *flip_table[2] = {
        "`'()/\\<>[]{}\x03\x05\x06\x08\x09\x0b", /* funny hex chars are line */
        "'`)(\\/><][}{\x05\x03\x08\x06\x0b\x09"  /* drawing chars (see chtr.h) */
    };
+   #endif
    
    tmp = layer_dup("tmp", layer);
    for (y = 0; y < layer->height; y++) {
       for (x = 0; x < layer->width; x++) { 
          Cell c = tmp->cells[x][y];
+         
+         #if ENABLE_WIDECHAR == 0
          if (flipchars) c.ch = tbl_lookup(flip_table, c.ch);
+         #endif
 
          layer->cells[layer->width - x - 1][y] = c;
       }
@@ -192,16 +224,21 @@ void layer_flip_x(Layer *layer, bool flipchars) {
 void layer_flip_y(Layer *layer, bool flipchars) {
    Layer *tmp;
    int x, y;
+   #if ENABLE_WIDECHAR == 0 
    static char *flip_table[2] = {
       "/\\\x03\x09\x04\x0a\x05\x0b",
       "\\/\x09\x03\x0a\x04\x0b\x05"
    };
+   #endif
 
    tmp = layer_dup("tmp", layer);
    for (y = 0; y < layer->height; y++) {
       for (x = 0; x < layer->width; x++) { 
          Cell c = tmp->cells[x][y];
+
+         #if ENABLE_WIDECHAR == 0
          if (flipchars) c.ch = tbl_lookup(flip_table, c.ch);
+         #endif
 
          layer->cells[x][layer->height - y - 1] = c;
       }
@@ -212,7 +249,11 @@ void layer_flip_y(Layer *layer, bool flipchars) {
 
 void layer_save(Layer *lyr, AeFile *f) {
    int x, y;
+   #if ENABLE_WIDECHAR
+   char *buf = zalloc(lyr->width * 8 + 1);
+   #else
    char *buf = zalloc(lyr->width * 4 + 1);
+   #endif
 
    aeff_write_header(f, "Layer");
    aeff_write_string(f, "name", lyr->name ? lyr->name : "unnamed");
@@ -222,10 +263,18 @@ void layer_save(Layer *lyr, AeFile *f) {
    aeff_write_bool(f, "transparent", lyr->transp);
    
    for (y = 0; y < lyr->height; y++) {
-      /* fill in buf with current line (decoded into hex duplets) */
       for (x = 0; x < lyr->width; x++) {
+         #if ENABLE_WIDECHAR
+         chr2hex(lyr->cells[x][y].ch[0], &buf[x * 8]);
+         chr2hex(lyr->cells[x][y].ch[1], &buf[x * 8 + 2]);
+         chr2hex(lyr->cells[x][y].ch[2], &buf[x * 8 + 4]);
+         chr2hex(lyr->cells[x][y].attr,  &buf[x * 8 + 6]); 
+         #else
+
+         /* fill in buf with current line (decoded into hex duplets) */
          chr2hex(lyr->cells[x][y].ch, &buf[x * 4]);
-	 chr2hex(lyr->cells[x][y].attr, &buf[x * 4 + 2]);
+         chr2hex(lyr->cells[x][y].attr, &buf[x * 4 + 2]);
+         #endif
       }
 
       /* save line to file */
@@ -257,10 +306,19 @@ Layer *layer_load(AeFile *f) {
    for (y = 0; y < lyr->height; y++) {
       if (!aeff_read_string(f, "layer-line", &buf)) goto exception;
 
-      if (strlen(buf) != lyr->width * 4) {
+      if (strlen(buf) != lyr->width * 8) {
          aeff_set_error("layer-line line has incorrect width");
 	 goto exception;
       }
+
+      #if ENABLE_WIDECHAR
+      for (x = 0; x < lyr->width; x++) {
+         lyr->cells[x][y].ch[0] = hex2chr(&buf[x * 8]);
+         lyr->cells[x][y].ch[1] = hex2chr(&buf[x * 8 + 2]);
+         lyr->cells[x][y].ch[2] = hex2chr(&buf[x * 8 + 4]);
+         lyr->cells[x][y].attr  = hex2chr(&buf[x * 8 + 6]);
+      }
+      #else
 
       /* interpret buf as width*4 hex duplets specifying char and attribute
        * for each cell in the line */
@@ -268,6 +326,7 @@ Layer *layer_load(AeFile *f) {
          lyr->cells[x][y].ch   = hex2chr(&buf[x * 4]);
 	 lyr->cells[x][y].attr = hex2chr(&buf[x * 4 + 2]);
       }
+      #endif
    
       zfree(&buf);
    }
@@ -305,7 +364,11 @@ Layer *layer_load_OLD(FILE *f) {
    l->transp = t;
    
    for (x = 0; x < width; x++) for (y = 0; y < height; y++) {
+      #if ENABLE_WIDECHAR
+      fgetws(l->cells[x][y].ch, 4, f);
+      #else 
       l->cells[x][y].ch   = fgetc(f);
+      #endif
       l->cells[x][y].attr = fgetc(f);
    }
    

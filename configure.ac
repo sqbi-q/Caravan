@@ -1,8 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([aewan])
-AC_CONFIG_SRCDIR([aewan.c])
+AC_INIT([caravan])
+AC_CONFIG_SRCDIR([caravan.c])
 #AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.

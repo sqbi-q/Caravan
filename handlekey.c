@@ -1,4 +1,7 @@
 /*
+Copyright (c) 2022 the Caravan contributors
+For a full list of authors, please see the CREDITS file.
+Original work by
 Copyright (c) 2003 Bruno T. C. de Oliveira
 
 LICENSE INFORMATION:
@@ -15,20 +18,6 @@ General Public License for more details.
 You should have received a copy of the GNU General Public
 License along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-Copyright (c) 2002 Bruno T. C. de Oliveira
-
-INFORMAÇÕES DE LICENÇA:
-Este programa é um software de livre distribuição; você pode
-redistribuí-lo e/ou modificá-lo sob os termos da GNU General
-Public License, conforme publicado pela Free Software Foundation,
-pela versão 2 da licença ou qualquer versão posterior.
-
-Este programa é distribuído na esperança de que ele será útil
-aos seus usuários, porém, SEM QUAISQUER GARANTIAS; sem sequer
-a garantia implícita de COMERCIABILIDADE ou DE ADEQUAÇÃO A
-QUALQUER FINALIDADE ESPECÍFICA. Consulte a GNU General Public
-License para obter mais detalhes (uma cópia acompanha este
-programa, armazenada no arquivo COPYING).
 */
 
 
@@ -58,6 +47,7 @@ programa, armazenada no arquivo COPYING).
 #include "menubar.h"
 #include "welcomedlg.h"
 #include "filedlg.h"
+#include "widechar.h"
 
 #define FAST_MOVE_AMOUNT 8  /* how much the cursor moves each time the fast
                              * movent keys (Ctrl+Z, Ctrl+X) are pressed */
@@ -127,7 +117,11 @@ static void u_resize_layer(void) {
 
    for (y = 0; y < h; y++)
       for (x = 0; x < w; x++) {
-         new_l->cells[x][y].ch   = l->cells[x][y].ch;
+         #if ENABLE_WIDECHAR
+         wintcpy(new_l->cells[x][y].ch, l->cells[x][y].ch);
+         #else
+         new_l->cells[x][y].ch = l->cells[x][y].ch;
+         #endif
          new_l->cells[x][y].attr = l->cells[x][y].attr;
       }
 
@@ -494,7 +488,15 @@ void handle_key(int ch) {
             lyr->cells[x][_y] = lyr->cells[x-1][_y];
       }
       
+      #if ENABLE_WIDECHAR
+      lyr->cells[_x][_y].ch[0] = ch_to_put;
+      lyr->cells[_x][_y].ch[1] = 0;
+      lyr->cells[_x][_y].ch[2] = 0;
+      lyr->cells[_x][_y].ch[3] = 0;
+      #else
       lyr->cells[_x][_y].ch = ch_to_put;
+      #endif
+
       lyr->cells[_x][_y].attr = _fg << 4 | _bg;
       _x++;
    }
@@ -520,6 +522,38 @@ void handle_key(int ch) {
    correct_coords();
 };
 
+
+void handle_wchkey(int* wch) {
+    if ((wch[0] >= 0x00 && wch[0] <= 0x7F) || wch[0] > 0xFF) { //if single or special char, use standard function
+        handle_key(wch[0]);
+        return;
+    }
+
+    Layer *lyr;
+
+    /* key does not trigger a command; handle it normally if there are
+     * layers in the document; ignore it if there aren't */
+    if (!_doc->layer_count) return;
+    lyr = _doc->layers[_lyr];
+
+    /* interpret character keys for no-selection mode */
+    if (_selmode != SM_NONE) return;
+    
+    if (_insmode) {
+        int x;
+        for (x = lyr->width - 1; x > _x; x--)
+            lyr->cells[x][_y] = lyr->cells[x-1][_y];
+    }
+    #if ENABLE_WIDECHAR 
+    wintcpy(lyr->cells[_x][_y].ch, wch);
+    #endif
+    lyr->cells[_x][_y].attr = _fg << 4 | _bg;
+    _x++;
+
+   correct_coords(); /* TODO diagnoze what this does */
+}
+
+
 void handle_command(int command) {
    int newfg, newbg;
    int ret;
@@ -528,7 +562,7 @@ void handle_command(int command) {
    /* handle commands that work regardless of whether document is empty */
    switch (command) {
       case COMMAND_QUIT: 
-         ret = ui_ask_yn("Really quit aewan?", 0);
+         ret = ui_ask_yn("Really quit Caravan?", 0);
          if (!ui_cancel && ret) exit(0);
          break;
       case COMMAND_ADD_LAYER_DEFAULTS:

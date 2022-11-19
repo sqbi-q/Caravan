@@ -1,4 +1,7 @@
 /*
+Copyright (c) 2022 the Caravan contributors
+For a full list of authors, please see the CREDITS file.
+Original work by
 Copyright (c) 2003 Bruno T. C. de Oliveira
 
 LICENSE INFORMATION:
@@ -15,20 +18,6 @@ General Public License for more details.
 You should have received a copy of the GNU General Public
 License along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-Copyright (c) 2002 Bruno T. C. de Oliveira
-
-INFORMAÇÕES DE LICENÇA:
-Este programa é um software de livre distribuição; você pode
-redistribuí-lo e/ou modificá-lo sob os termos da GNU General
-Public License, conforme publicado pela Free Software Foundation,
-pela versão 2 da licença ou qualquer versão posterior.
-
-Este programa é distribuído na esperança de que ele será útil
-aos seus usuários, porém, SEM QUAISQUER GARANTIAS; sem sequer
-a garantia implícita de COMERCIABILIDADE ou DE ADEQUAÇÃO A
-QUALQUER FINALIDADE ESPECÍFICA. Consulte a GNU General Public
-License para obter mais detalhes (uma cópia acompanha este
-programa, armazenada no arquivo COPYING).
 */
 
 
@@ -39,6 +28,7 @@ programa, armazenada no arquivo COPYING).
 #include <stdbool.h>
 #include "layer.h"
 #include "vlayer.h"
+#include "widechar.h"
 
 /* Exports the given virtual layer to text format, writing the output to the
  * given file. The parameter use_ansi_escape determines whether the function
@@ -57,7 +47,12 @@ typedef struct {  /* represents a decoded document cell. Returned
 
    int fg, bg;      /* the foreground and background color codes (4 bit, 0-15)
                      * for the cell */
+   
+   #if ENABLE_WIDECHAR
+   int ch[4];
+   #else
    int ch;          /* the character in the cell */
+   #endif   
 
    /* now some of the same information, but in a more broken-down form: */
    bool bold, blink;  /* bold and blink attributes */

@@ -4,6 +4,12 @@ Makefile
 
 *.o
 aecat
+caracat
 aemakeflic
 aewan
+caravan
 depends
+
+.cache/
+autom4te.cache/
+compile_commands.json
